@@ -44,6 +44,27 @@ async def schedule(message: types.Message):
     await message.reply(response_text)
 
 
+@dp.message_handler(commands=['namaztoday'])
+async def namaztoday(message: types.Message):
+    headers = {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:92.0) Gecko/20100101 Firefox/92.0"
+    }
+    response = requests.get('https://namaz.today/city/tashkent', headers=headers)
+    tree = html.fromstring(response.text)
+    times = dict(zip(
+        [name.text_content() for name in tree.xpath("//div[contains(@class, 'subheader') and contains(@class, 'text-center')]")],
+        [time.text for time in tree.xpath("//span[contains(@class, 'text-center') and contains(@class, 'rb')]")]
+    ))
+    remaining_time_to_next = re_sub(' +', ' ', tree.xpath("//div[contains(@class, 'round') and contains(@class, 'active')]")[0].xpath("//div[contains(@class, 'time-remaining-content')]")[0].text_content())
+    response_text = "Времена Намаза сегодня в Ташкенте:\n"
+    for namaz_name, time in times.items():
+        res += namaz_name + ": " + time + "\n"
+    response_text += remaining_time_to_next
+    response_text += "\n\nИнформация взята с https://namaz.today/city/tashkent"
+    await message.reply(response_text))
+
+
 @dp.message_handler(commands=['ban'])
 async def ban(message: types.Message):
     user = await bot.get_chat_member(message.chat.id, message.from_user.id)
