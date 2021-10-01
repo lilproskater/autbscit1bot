@@ -3,9 +3,12 @@ from aiogram.types.chat_permissions import ChatPermissions
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from AmizoneAPI import amizone_api
 from config import AMIZONE_ID, AMIZONE_PASSWORD, BOT_TOKEN
+from re import sub as re_sub
 from time import time
+from lxml import html
 import random
 import json
+import requests
 
 
 bot = Bot(token=BOT_TOKEN)
@@ -59,10 +62,10 @@ async def namaztoday(message: types.Message):
     remaining_time_to_next = re_sub(' +', ' ', tree.xpath("//div[contains(@class, 'round') and contains(@class, 'active')]")[0].xpath("//div[contains(@class, 'time-remaining-content')]")[0].text_content())
     response_text = "Времена Намаза сегодня в Ташкенте:\n"
     for namaz_name, time in times.items():
-        res += namaz_name + ": " + time + "\n"
+        response_text += namaz_name + ": " + time + "\n"
     response_text += remaining_time_to_next
     response_text += "\n\nИнформация взята с https://namaz.today/city/tashkent"
-    await message.reply(response_text))
+    await message.reply(response_text, disable_web_page_preview=True)
 
 
 @dp.message_handler(commands=['ban'])
