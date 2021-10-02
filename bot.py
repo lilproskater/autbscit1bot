@@ -59,7 +59,7 @@ async def namaztoday(message: types.Message):
         [name.text_content() for name in tree.xpath("//div[contains(@class, 'subheader') and contains(@class, 'text-center')]")],
         [time.text for time in tree.xpath("//span[contains(@class, 'text-center') and contains(@class, 'rb')]")]
     ))
-    remaining_time_to_next = re_sub(' +', ' ', tree.xpath("//div[contains(@class, 'round') and contains(@class, 'active')]")[0].xpath("//div[contains(@class, 'time-remaining-content')]")[0].text_content())
+    remaining_time_to_next = re_sub(' +', ' ', tree.xpath("//div[contains(@class, 'round') and contains(@class, 'active')]//div[contains(@class, 'time-remaining-content')]")[0].text_content())
     response_text = "Времена Намаза сегодня в Ташкенте:\n"
     for namaz_name, time in times.items():
         response_text += namaz_name + ": " + time + "\n"
