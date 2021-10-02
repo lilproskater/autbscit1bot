@@ -1,14 +1,17 @@
-from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types.chat_permissions import ChatPermissions
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from AmizoneAPI import amizone_api
+from aiogram.types.chat_permissions import ChatPermissions
 from config import AMIZONE_ID, AMIZONE_PASSWORD, BOT_TOKEN
+from os import path as os_path, makedirs as os_mkdirs
+from aiogram import Bot, Dispatcher, executor, types
+from requests_html import HTMLSession
+from AmizoneAPI import amizone_api
+from datetime import datetime
 from re import sub as re_sub
 from time import time
 from lxml import html
+import requests
 import random
 import json
-import requests
 
 
 bot = Bot(token=BOT_TOKEN)
@@ -67,6 +70,26 @@ async def namaztoday(message: types.Message):
     response_text += "\n\nИнформация взята с https://namaz.today/city/tashkent"
     await message.reply(response_text, disable_web_page_preview=True)
 
+@dp.message_handler(commands=['googleweather'])
+async def googleweather(message: types.Message):
+    headers = {
+        'Host': 'www.google.com',
+        'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:92.0) Gecko/20100101 Firefox/92.0',
+    }
+    session = HTMLSession()
+    r = session.get('https://www.google.com/search?q=погода+ташкент', headers=headers)
+    r.html.render()
+    hourly_weather = dict(zip([x.text for x in r.html.find('#wob_sd .wob_hw')[:8]], [r.html.find('.wob_gs_l' + str(x))[0].text for x in range(0, 22, 3)]))
+    result = datetime.today().strftime('%A') + ' weather\n'
+    img_url = r.html.find('.uW5pk')[0].attrs['src'][2:].split('/')
+    img_url[-2] = '256' # max available resolution
+    img_url = 'https://' + '/'.join(img_url)
+    result += 'Day: ' + r.html.find('.wob_df.wob_ds .gNCp2e')[0].find('span')[0].text + '°\n'  # Day weather
+    result += 'Night: ' + r.html.find('.wob_df.wob_ds .ZXCv8e')[0].find('span')[0].text + '°\n\n'  # Night weather
+    result += 'Hourly weather:\n'
+    for time, temp in hourly_weather.items():
+        result += time + ' - ' + temp + '°\n'
+    await bot.send_photo(message.chat.id, img_url, caption=result, reply_to_message_id=message.id)
 
 @dp.message_handler(commands=['ban'])
 async def ban(message: types.Message):
