@@ -26,7 +26,7 @@ restricted_permissions = ChatPermissions(can_send_messages = False,
                                   can_pin_messages = False)
 
 
-def get_google_weather(search='tashkent'):
+async def get_google_weather(search='tashkent'):
     headers = {
         'Host': 'www.google.com',
         'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:92.0) Gecko/20100101 Firefox/92.0',
@@ -51,7 +51,7 @@ def get_google_weather(search='tashkent'):
         humidity = tree.xpath("//span[@id='wob_hm']")[0].text
         wind_speed = tree.xpath("//span[@id='wob_ws']")[0].text
         hourly_w = dict(zip([pmc['wobnm']['wobhl'][x]['dts'].capitalize() for x in range(0, 15, 3)], [pmc['wobnm']['wobhl'][x]['tm'] + '°' for x in range(0, 15, 3)]))
-        result  = f'{location} - {today}, {forecast}'
+        result  = location + ' - ' + today + ', ' + forecast + '\n'
         result += 'Day: ' + day_temp + '\n'
         result += 'Night: ' + night_temp + '\n\n'
         result += 'Precipitation: ' + precipitation  + '\n'
@@ -59,7 +59,7 @@ def get_google_weather(search='tashkent'):
         result += 'Wind speed: ' + wind_speed + '\n\n'
         result += 'Hourly weather:\n'
         for time, temp in hourly_w.items():
-            result += time + '-' + temp + '\n'
+            result += ', '.join(time.split(' ')) + ' - ' + temp + '\n'
         return img_url, result
     except:
         return None, None
@@ -113,27 +113,27 @@ async def namaztoday(message: types.Message):
 async def googleweather(message: types.Message):
     args = message.text.split()
     if len(args) == 1:
-        await message.reply('Getting weather information from Google')
-        img, caption = await get_google_weather()
-        if not img or not caption:
+        await message.reply('Getting weather information from Google...')
+        img_url, caption = await get_google_weather()
+        if not img_url or not caption:
             await message.reply("Couldn't get weather info from Google")
             return
         await bot.send_photo(message.chat.id, img_url, caption=caption, reply_to_message_id=message.message_id)
     elif len(args) == 2:
-        await message.reply('Getting ' + args[1] + ' weather information from Google')
-        imp, cation = await get_google_weather(args[1])
-        if not img or not caption:
-            await message.reply("Couldn't get " + args[1] + " weather info from Google")
+        await message.reply('Getting ' + args[1] + ' weather information from Google...')
+        img_url, caption = await get_google_weather(args[1])
+        if not img_url or not caption:
+            await message.reply('Couldn\'t get ' + args[1] + ' weather info from Google')
             return
         await bot.send_photo(message.chat.id, img_url, caption=caption, reply_to_message_id=message.message_id)
     else:
-        await message.reply("Error in given arguments")
+        await message.reply('Error in given arguments')
 
 
 @dp.message_handler(commands=['ban'])
 async def ban(message: types.Message):
     user = await bot.get_chat_member(message.chat.id, message.from_user.id)
-    if user.status != 'creator':
+    if user.status != "creator":
         await message.reply('Only creator Senior can ban users!')
         return
     else:
@@ -147,7 +147,7 @@ async def ban(message: types.Message):
     ban_user = await bot.get_chat_member(message.chat.id, message.reply_to_message.from_user.id)
     full_name = (ban_user.user.first_name + ' ' + xstr(ban_user.user.last_name)).strip()
     if ban_user.status == "restricted":
-        await message.reply("User " + full_name + " is already banned")
+        await message.reply('User ' + full_name + ' is already banned')
         return
 
     ban_hours = 2
@@ -159,16 +159,15 @@ async def ban(message: types.Message):
     with open('data.json', 'w') as f:
         json.dump(json_data, f, indent=4)
     await bot.restrict_chat_member(message.chat.id,  ban_user.user.id, restricted_permissions, unix_ban_timeout)
-    await message.reply("User " + full_name + " was banned for " + str(ban_hours) + " hours!")
+    await message.reply('User ' + full_name + ' has been banned for ' + str(ban_hours) + ' hours!')
 
 
 @dp.message_handler(commands=['unban'])
 async def unban(message: types.Message):
     user = await bot.get_chat_member(message.chat.id, message.from_user.id)
-    if user.status != 'creator':
+    if user.status != "creator":
         await message.reply('Only creator Senior can unban users!')
         return
-
     inline_markup = InlineKeyboardMarkup(row_width=1)
     text = "Banned users:\n"
     for id, user_data in json_data['banned_users'].items():
