@@ -79,9 +79,17 @@ async def schedule(message: types.Message):
     await amizone_api.login(AMIZONE_ID, AMIZONE_PASSWORD)
     args = message.text.split()
     if len(args) == 1:
-        response_text = await amizone_api.get_time_table()
+        try:
+            await message.reply("Getting schedule from Amizone...")
+            response_text = await amizone_api.get_time_table()
+        except:
+            response_text = "Couldn't get schedule from Amizone"
     elif len(args) == 2:
-        response_text = await amizone_api.get_time_table(args[1])
+        try:
+            await message.reply("Getting schedule from Amizone...")
+            response_text = await amizone_api.get_time_table(args[1])
+        except:
+            response_text = "Couldn't get schedule for " + args[1] + " from Amizone"
     else:
         response_text = "Error in given arguments"
     await message.reply(response_text)
