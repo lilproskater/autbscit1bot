@@ -4,7 +4,6 @@ from config import AMIZONE_ID, AMIZONE_PASSWORD, BOT_TOKEN
 from os import path as os_path, makedirs as os_mkdirs
 from aiogram import Bot, Dispatcher, executor, types
 from re import sub as re_sub, search as re_search
-from requests_html import AsyncHTMLSession
 from AmizoneAPI import amizone_api
 from time import time
 from lxml import html
