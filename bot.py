@@ -3,10 +3,9 @@ from aiogram.types.chat_permissions import ChatPermissions
 from config import AMIZONE_ID, AMIZONE_PASSWORD, BOT_TOKEN
 from os import path as os_path, makedirs as os_mkdirs
 from aiogram import Bot, Dispatcher, executor, types
+from re import sub as re_sub, search as re_search
 from requests_html import AsyncHTMLSession
 from AmizoneAPI import amizone_api
-from datetime import datetime
-from re import sub as re_sub
 from time import time
 from lxml import html
 import requests
@@ -25,6 +24,45 @@ restricted_permissions = ChatPermissions(can_send_messages = False,
                                   can_change_info = False,
                                   can_invite_users = False,
                                   can_pin_messages = False)
+
+
+def get_google_weather(search='tashkent'):
+    headers = {
+        'Host': 'www.google.com',
+        'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:92.0) Gecko/20100101 Firefox/92.0',
+    }
+    params = {
+       'q': 'weather ' + search.strip().lower(),
+       'hl': 'en', #  the language to use for the Google search
+    }
+    response = requests.get('https://www.google.com/search', headers=headers, params=params)
+    pmc = json.loads(re_search("var pmc='.{0,}';", response.text)[0][9:-2].replace('\\\\', '\\').replace('\\x22', '"'))
+    tree = html.fromstring(response.text)
+    try:
+        location = tree.xpath("//div[@id='wob_loc']")[0].text
+        today = tree.xpath("//div[@id='wob_dts']")[0].text[:-6].capitalize()
+        forecast = tree.xpath("//span[@id='wob_dc']")[0].text.capitalize()
+        img_url = tree.xpath("//div[contains(@class, 'DxhUm')]/img")[0].attrib['src'][2:].split('/')
+        img_url[-2] = '256' # max available resolution
+        img_url = 'https://' + '/'.join(img_url)
+        day_temp = tree.xpath("//div[contains(@class, 'gNCp2e')]/span")[0].text + '°'
+        night_temp = tree.xpath("//div[contains(@class, 'ZXCv8e')]/span")[0].text + '°'
+        precipitation = tree.xpath("//span[@id='wob_pp']")[0].text
+        humidity = tree.xpath("//span[@id='wob_hm']")[0].text
+        wind_speed = tree.xpath("//span[@id='wob_ws']")[0].text
+        hourly_w = dict(zip([pmc['wobnm']['wobhl'][x]['dts'].capitalize() for x in range(0, 15, 3)], [pmc['wobnm']['wobhl'][x]['tm'] + '°' for x in range(0, 15, 3)]))
+        result  = f'{location} - {today}, {forecast}'
+        result += 'Day: ' + day_temp + '\n'
+        result += 'Night: ' + night_temp + '\n\n'
+        result += 'Precipitation: ' + precipitation  + '\n'
+        result += 'Humidity: ' + humidity + '\n'
+        result += 'Wind speed: ' + wind_speed + '\n\n'
+        result += 'Hourly weather:\n'
+        for time, temp in hourly_w.items():
+            result += time + '-' + temp + '\n'
+        return img_url, result
+    except:
+        return None, None
 
 
 @dp.message_handler(commands=['start'])
@@ -73,32 +111,23 @@ async def namaztoday(message: types.Message):
 
 @dp.message_handler(commands=['googleweather'])
 async def googleweather(message: types.Message):
-    await message.reply('Getting weather information from Google. Please be patient, it may take a while...')
-    try:
-        headers = {
-            'Host': 'www.google.com',
-            'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:92.0) Gecko/20100101 Firefox/92.0',
-        }
-        session = AsyncHTMLSession()
-        r = await session.get('https://www.google.com/search?q=погода+ташкент', headers=headers)
-        await r.html.arender(timeout=10)
-        if len(r.html.find('#wob_gsvg .wob_gs_l0')) == 0:
-            with open('log.txt', 'wb') as f:
-                f.write(r.html.text)
-        hourly_weather = dict(zip([x.text for x in r.html.find('#wob_sd .wob_hw')[:8]], [r.html.find('#wob_gsvg .wob_gs_l' + str(x))[0].text for x in range(0, 22, 3)]))
-        result = datetime.today().strftime('%A') + ' weather\n'
-        img_url = r.html.find('.uW5pk')[0].attrs['src'][2:].split('/')
-        img_url[-2] = '256' # max available resolution
-        img_url = 'https://' + '/'.join(img_url)
-        result += 'Day: ' + r.html.find('.wob_df.wob_ds .gNCp2e')[0].find('span')[0].text + '°\n'  # Day weather
-        result += 'Night: ' + r.html.find('.wob_df.wob_ds .ZXCv8e')[0].find('span')[0].text + '°\n\n'  # Night weather
-        result += 'Hourly weather:\n'
-        for time, temp in hourly_weather.items():
-            result += time + ' - ' + temp + '°\n'
-        await bot.send_photo(message.chat.id, img_url, caption=result, reply_to_message_id=message.message_id)
-    except Exception as e:
-        print(repr(e))
-        await message.reply('Sorry, an error occured while getting weater info')
+    args = message.text.split()
+    if len(args) == 1:
+        await message.reply('Getting weather information from Google')
+        img, caption = await get_google_weather()
+        if not img or not caption:
+            await message.reply("Couldn't get weather info from Google")
+            return
+        await bot.send_photo(message.chat.id, img_url, caption=caption, reply_to_message_id=message.message_id)
+    elif len(args) == 2:
+        await message.reply('Getting ' + args[1] + ' weather information from Google')
+        imp, cation = await get_google_weather(args[1])
+        if not img or not caption:
+            await message.reply("Couldn't get " + args[1] + " weather info from Google")
+            return
+        await bot.send_photo(message.chat.id, img_url, caption=caption, reply_to_message_id=message.message_id)
+    else:
+        await message.reply("Error in given arguments")
 
 
 @dp.message_handler(commands=['ban'])
