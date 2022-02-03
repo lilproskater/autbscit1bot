@@ -58,12 +58,12 @@ async def get_time_table(day=""):
             if not lectures:
                 res += "Time-table not set".title() + "\n"
             course_names = {
-                "BC109": "Communication skills",
-                "CSE207": "DECO",
-                "CSIT140": "Programming in C",
-                "CSIT147": "Web Designing Practices",
-                "MATH144": "Math",
-                "ETTP100": "Term paper"
+                "CSIT124": "Data Structures using C",
+                "IT425": "Cyber and Information Security",
+                "STAT233": "Probability and Statistics",
+                "ACCT102": "Accounting Fundamentals",
+                "IT201": "неPraveeльный Java",
+                "BC206": "Communication Skills"
             }
             for lecture in lectures:
                 res += lecture.find_class("class-time")[0].text.replace(' ', '').replace('to', ' - ') + '\n'
