@@ -67,7 +67,7 @@ async def get_time_table(day=""):
             }
             for lecture in lectures:
                 res += lecture.find_class("class-time")[0].text.replace(' ', '').replace('to', ' - ') + '\n'
-                course_code = lecture.find_class("course-code")[0].text
+                course_code = lecture.find_class("course-code")[0].text.replace(' ', '')
                 course_name = course_names.get(course_code)
                 res += (course_name if course_name else 'Unknown Course') + ' - ' + course_code + '\n'
                 res += re_sub(r'\[[^[]*\]', '', lecture.find_class("course-teacher")[0].text) + '\n'
