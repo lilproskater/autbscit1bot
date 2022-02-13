@@ -43,10 +43,10 @@ async def get_time_table(day=""):
     def parse_time_table(html_text):
         nonlocal day
         day = day.capitalize()
-        days_of_the_week = "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday"
-        if day not in days_of_the_week:
-            return 'Given day should be in range of Monday-Saturday'
-        days_to_parse = days_of_the_week.split(',') if not day else [day]
+        days_of_the_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        if day and day not in days_of_the_week:
+            return 'Given day should be in range of Monday-Sunday (Mon-Sun)'
+        days_to_parse = days_of_the_week if not day else [day]
         tree = html.fromstring(html_text)
         if not tree.xpath('//div[' + ' or '.join(['contains(@id, "' + x + '")' for x in days_to_parse]) + ']'):
             return "Time-table not set".title()

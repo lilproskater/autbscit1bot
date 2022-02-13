@@ -7,6 +7,7 @@ from re import sub as re_sub, search as re_search
 from AmizoneAPI import amizone_api
 from time import time
 from lxml import html
+from datetime import date
 import requests
 import random
 import json
@@ -78,14 +79,26 @@ async def welcome(message: types.Message):
 async def schedule(message: types.Message):
     await amizone_api.login(AMIZONE_ID, AMIZONE_PASSWORD)
     args = message.text.split()
+    days_of_the_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     if len(args) == 1:
         try:
             await message.reply("Getting schedule from Amizone...")
-            response_text = await amizone_api.get_time_table()
+            response_text = await amizone_api.get_time_table(days_of_the_week[date.today().weekday()])
         except:
             response_text = "Couldn't get schedule from Amizone"
     elif len(args) == 2:
+        args[1] = args[1].capitalize()
         try:
+            if args[1] == 'Week':
+                args[1] = ''
+            elif args[1] in ['Tom', 'Tomorrow']:
+                args[1] = days_of_the_week[(date.today().weekday() + 1) % 7]
+            else:
+                args[1] = [x for x in days_of_the_week if x[:3] == args[1] or x == args[1]]
+                if not args[1]:
+                    await message.reply('Error: Argument 1 should be in [Week, Tom (Tomorrow), Mon-Sun (Monday-Sunday)]')
+                    return
+                args[1] = args[1][0]
             await message.reply("Getting schedule from Amizone...")
             response_text = await amizone_api.get_time_table(args[1])
         except:
