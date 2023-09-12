@@ -1,0 +1,3 @@
+* Fix google weather:
+    - Response returning 1-white pixel base64 image. Needed base64 image is loaded through JS. Parse it
+* Add send photo to a group command for admins
