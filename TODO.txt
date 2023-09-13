@@ -1,3 +1,6 @@
-* Fix google weather:
-    - Response returning 1-white pixel base64 image. Needed base64 image is loaded through JS. Parse it
-* Add send photo to a group command for admins
+* Rename command googleweather to google_weather in BotFather
+* Rename command namaztoday to namaz_today in BotFather
+* Add DB table for subjects (+ admin command /update_subjects that will work just like BotFather's /setcommands)
+* Add admins table (+ admin command /update_admins that will work just like BotFather's /setcommands)
+  - Handle cases when admin can remove himself!
+* Lang files to make code cleaner?
