@@ -8,7 +8,7 @@ async def set_admins(message: Message):
     if not is_super_admin(message.chat.id):
         await message.reply('Вы не являетесь супер-админом')
         return
-    args = ' '.join(message.text.replace(' ', '\n').split('\n', 1)[1:])
+    args = '\n'.join(message.text.replace(' ', '\n').split('\n', 1)[1:])
     user_ids = [x.strip() for x in args.split('\n') if x.strip()]
     non_numbers = [x for x in user_ids if not str_is_number(x, True)]  # Check only positive or 0 values
     if not user_ids or non_numbers:
