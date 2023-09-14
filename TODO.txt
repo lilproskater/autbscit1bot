@@ -1,3 +1,4 @@
+* Replace check from config.py -> GROUP_ID to check with DB sql_exec
 * AmizoneApi return COURSE CODE and etc. then parse with "hands"
 * Add DB table for subjects (+ admin command /update_subjects that will work just like BotFather's /setcommands)
 * Add new commands to bot

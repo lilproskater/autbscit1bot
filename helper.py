@@ -44,10 +44,10 @@ def sql_exec(sql, args=()):
     return [dict(zip(columns, row)) for row in rows] or None
 
 
-def str_is_number(str, positive_or_0=False):
-    result = str.isdigit(str)
+def str_is_number(data_str, positive_or_0=False):
+    result = str.isdigit(data_str)
     if not positive_or_0:
-        result = result or str.startsWith('-') and str.isdigit(str)[1:]  # Check negative numbers
+        result = result or data_str.startswith('-') and str.isdigit(data_str[1:])  # Check negative numbers
     return bool(result)
 
 

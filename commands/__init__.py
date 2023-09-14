@@ -8,6 +8,8 @@ from .send_group import *
 from .reply_group import *
 from .forward_group import *
 from .reply_forward_group import *
+from .set_admins import *
+from .set_group import *
 
 # BotFather's /setcommands description
 # start - Start bot
