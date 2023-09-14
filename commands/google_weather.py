@@ -13,7 +13,7 @@ async def get_google_weather(search='tashkent'):
         'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:92.0) Gecko/20100101 Firefox/92.0',
     }
     params = {
-       'q': 'weather ' + search.strip().lower(),
+       'q': f'weather {search.strip().lower()}',
        'hl': 'en',  # the language to use for the Google search
     }
     response = requests_get('https://www.google.com/search', headers=headers, params=params)
@@ -30,18 +30,18 @@ async def get_google_weather(search='tashkent'):
         humidity = tree.xpath('//span[@id="wob_hm"]')[0].text
         wind_speed = tree.xpath('//span[@id="wob_ws"]')[0].text
         hourly_w = dict(zip(
-            [pmc['wobnm']['wobhl'][x]['dts'].capitalize() for x in range(0, 15, 3)],
-            [pmc['wobnm']['wobhl'][x]['tm'] + '°' for x in range(0, 15, 3)])
+            [f'{pmc["wobnm"]["wobhl"][x]["dts"]}'.capitalize() for x in range(0, 15, 3)],
+            [f'{pmc["wobnm"]["wobhl"][x]["tm"]}°' for x in range(0, 15, 3)])
         )
-        result = location + ' - ' + today + ', ' + forecast + '\n'
-        result += 'Day: ' + day_temp + '\n'
-        result += 'Night: ' + night_temp + '\n\n'
-        result += 'Precipitation: ' + precipitation + '\n'
-        result += 'Humidity: ' + humidity + '\n'
-        result += 'Wind speed: ' + wind_speed + '\n\n'
+        result = f'{location} - {today}, {forecast}\n'
+        result += f'Day: {day_temp}\n'
+        result += f'Night: {night_temp}\n\n'
+        result += f'Precipitation: {precipitation}\n'
+        result += f'Humidity: {humidity}\n'
+        result += f'Wind speed: {wind_speed}\n\n'
         result += 'Hourly weather:\n'
         for w_time, temp in hourly_w.items():
-            result += ', '.join(w_time.split(' ')) + ' - ' + temp + '\n'
+            result += f'{", ".join(w_time.split(" "))} - {temp}\n'
         return img_url, result
     except Exception as _:
         return None, None
@@ -54,7 +54,7 @@ async def google_weather(message: Message):
         await message.reply('Error in given arguments')
         return
     city = args[1].strip() + ' ' if len(args) == 2 else ''
-    await message.reply('Getting ' + city + 'weather information from Google...')
+    await message.reply(f'Getting {city} weather information from Google...')
     city = city.strip()
     img_url, caption = await get_google_weather(city if city else 'tashkent')
     if not caption:

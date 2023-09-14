@@ -1,6 +1,5 @@
-* Rename command googleweather to google_weather in BotFather
-* Rename command namaztoday to namaz_today in BotFather
+* AmizoneApi return COURSE CODE and etc. then parse with "hands"
 * Add DB table for subjects (+ admin command /update_subjects that will work just like BotFather's /setcommands)
-* Add admins table (+ admin command /update_admins that will work just like BotFather's /setcommands)
-  - Handle cases when admin can remove himself!
+* Add new commands to bot
+* Add non-group used commands reply in groups also
 * Lang files to make code cleaner?

@@ -22,7 +22,7 @@ async def unban(message: Message):
         inline_markup_rows.append([
             InlineKeyboardButton(text=banned_user.get('name'), callback_data=str(banned_user.get('user_id')))
         ])
-        text += banned_user.get('name') + '\n'
+        text += f'{banned_user.get("name")}\n'
     inline_markup = InlineKeyboardMarkup(inline_keyboard=inline_markup_rows)
     if not inline_markup.inline_keyboard:
         await bot.send_message(message.chat.id, 'No banned users found')

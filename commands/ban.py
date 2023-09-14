@@ -18,9 +18,9 @@ async def ban(message: Message):
             await message.reply('Admin cannot ban himself or bot')
             return
     ban_user = await bot.get_chat_member(message.chat.id, message.reply_to_message.from_user.id)
-    full_name = (ban_user.user.first_name + ' ' + (ban_user.user.last_name or '')).strip()
+    full_name = f'{ban_user.user.first_name} {ban_user.user.last_name or ""}'.strip()
     if ban_user.status == 'restricted':
-        await message.reply('User ' + full_name + ' is already banned')
+        await message.reply(f'User {full_name} is already banned')
         return
     ban_hours = 2
     unix_ban_timeout = int(time()) + ban_hours * 3600
@@ -36,6 +36,6 @@ async def ban(message: Message):
             restricted_permissions,
             until_date=unix_ban_timeout
         )
-        await message.reply('User ' + full_name + ' has been banned for ' + str(ban_hours) + ' hours!')
+        await message.reply(f'User {full_name} has been banned for {ban_hours} hours!')
     except Exception as _:
         await message.reply('Couldn\'t ban user')

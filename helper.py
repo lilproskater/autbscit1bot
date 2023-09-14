@@ -42,3 +42,22 @@ def sql_exec(sql, args=()):
     db_cursor.close()
     db_connection.close()
     return [dict(zip(columns, row)) for row in rows] or None
+
+
+def str_is_number(str, positive_or_0=False):
+    result = str.isdigit(str)
+    if not positive_or_0:
+        result = result or str.startsWith('-') and str.isdigit(str)[1:]  # Check negative numbers
+    return bool(result)
+
+
+def is_admin(chat_id):
+    return bool(sql_exec('SELECT * FROM admins WHERE user_id=?', (chat_id,)))
+
+
+def is_super_admin(chat_id):
+    return bool(sql_exec('SELECT * FROM settings WHERE key=? and value=?', ('SUPER_ADMIN_ID', chat_id)))
+
+
+def is_admin_or_super_admin(chat_id):
+    return is_admin(chat_id) or is_super_admin(chat_id)

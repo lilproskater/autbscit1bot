@@ -2,38 +2,36 @@ from aiogram.filters.command import Command
 from aiogram.types import Message
 from helper import dp
 from datetime import date
-from AmizoneAPI import amizone_api
+from amizone_api import AmizoneApiSession
+from calendar import day_name as calendar_day_name  # ['Monday', ..., 'Sunday']
 from config import AMIZONE_ID, AMIZONE_PASSWORD
+
+
+def normalize_day(day):  # Returns 'Week' or string Monday-Sunday
+    day = day.capitalize()
+    if day == 'Week':
+        return day
+    if day in ['Tom', 'Tomorrow']:
+        return calendar_day_name[(date.today().weekday() + 1) % 7]
+    # Check for weekdays (Mon-Sun or Monday-Sunday)
+    short_day_names = [x[:3] for x in calendar_day_name]  # ['Mon', ..., 'Sun']
+    if day in (*calendar_day_name, *short_day_names):
+        return [x for x in calendar_day_name if x[:3] == day[:3]][0]
+    return None
 
 
 @dp.message(Command('schedule'))
 async def schedule(message: Message):
-    await amizone_api.login(AMIZONE_ID, AMIZONE_PASSWORD)
-    args = message.text.split()
-    days_of_the_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    if len(args) == 1:
-        try:
-            await message.reply('Getting schedule from Amizone...')
-            response_text = await amizone_api.get_time_table(days_of_the_week[date.today().weekday()])
-        except Exception as _:
-            response_text = 'Couldn\'t get schedule from Amizone'
-    elif len(args) == 2:
-        day = args[1].capitalize()
-        try:
-            if day == 'Week':
-                day = ''
-            elif day in ['Tom', 'Tomorrow']:
-                day = days_of_the_week[(date.today().weekday() + 1) % 7]
-            else:
-                day = [x for x in days_of_the_week if x[:3] == args[1] or x == args[1]]
-                if not day:
-                    await message.reply('Error: Argument 1 should be [Week, Tom (Tomorrow) or Mon-Sun (Monday-Sunday)]')
-                    return
-                day = args[1][0]
-            await message.reply('Getting schedule from Amizone...')
-            response_text = await amizone_api.get_time_table(day)
-        except Exception as _:
-            response_text = 'Couldn\'t get schedule for ' + args[1] + ' from Amizone'
-    else:
-        response_text = 'Error in given arguments'
-    await message.reply(response_text)
+    day = f'{message.text} '.split(' ', 1)[1].capitalize()
+    day = normalize_day(calendar_day_name[date.today().weekday()] if not day else day.strip())
+    if not day:
+        await message.reply('Ошибка: Параметр должен быть задан как [Week, Tom (Tomorrow) или Mon-Sun (Monday-Sunday)]')
+        return
+    try:
+        await message.reply('Получаю расписание из Amizone...')
+        session = AmizoneApiSession(AMIZONE_ID, AMIZONE_PASSWORD)
+        await session.login()
+        # TODO: Redo parsing for AmizoneApiSession.get_tt. See TODO.txt
+        await message.reply(await session.get_tt(day))
+    except Exception as _:
+        await message.reply(f'Не удалось получить расписание из Amizone')

@@ -1,12 +1,12 @@
 from aiogram.filters.command import Command
 from aiogram.types import Message
-from helper import bot, dp, ChatTypeFilter
-from config import ADMINS_ID, GROUP_ID
+from helper import bot, dp, ChatTypeFilter, is_admin_or_super_admin
+from config import GROUP_ID
 
 
 @dp.message(ChatTypeFilter(chat_type=['private']), Command('reply_group'))
 async def reply_group(message: Message):
-    if message.chat.id not in ADMINS_ID:
+    if not is_admin_or_super_admin(message.chat.id):
         await message.reply('Вы не можете отвечать на сообщение в группе через бота')
         return
     if not GROUP_ID:

@@ -24,7 +24,7 @@ async def namaz_today(message: Message):
     remaining_time_to_next = r_sub(' +', ' ', tree.xpath(selector)[0].text_content())
     response_text = 'Времена Намаза сегодня в Ташкенте:\n'
     for namaz_name, ptime in times.items():
-        response_text += namaz_name + ': ' + ptime + '\n'
+        response_text += f'{namaz_name}: {ptime}\n'
     response_text += remaining_time_to_next
     response_text += '\n\nИнформация взята с https://namaz.today/city/tashkent'
     await message.reply(response_text, disable_web_page_preview=True)
