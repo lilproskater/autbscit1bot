@@ -1,7 +1,6 @@
 from aiogram.filters.command import Command
 from aiogram.types import Message
-from helper import ChatTypeFilter, bot, dp, is_admin_or_super_admin, get_message_argument, str_is_number
-from config import GROUP_ID
+from helper import ChatTypeFilter, bot, dp, is_admin_or_super_admin, get_message_argument, str_is_number, get_group_id
 
 
 @dp.message(ChatTypeFilter(chat_type=['group', 'supergroup']), Command('reply_forward_group'))
@@ -14,7 +13,8 @@ async def reply_forward_group_private(message: Message):
     if not is_admin_or_super_admin(message.chat.id):
         await message.reply('Вы не можете пересылать сообщение в группу через бота')
         return
-    if not GROUP_ID:
+    group_id = get_group_id()
+    if not group_id:
         await message.reply('У бота нет привязанной группы в конфиге')
         return
     try:
@@ -29,7 +29,7 @@ async def reply_forward_group_private(message: Message):
             await message.reply('Нельзя переслать медиа-группу. Пожалуйста ответьте на сообщение с одним вложением')
             return
         await bot.copy_message(
-            GROUP_ID,
+            group_id,
             from_chat_id=message.chat.id,
             message_id=message.reply_to_message.message_id,
             reply_to_message_id=int(message_id)

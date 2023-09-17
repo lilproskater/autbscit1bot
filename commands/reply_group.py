@@ -1,7 +1,6 @@
 from aiogram.filters.command import Command
 from aiogram.types import Message
-from helper import ChatTypeFilter, bot, dp, is_admin_or_super_admin, get_message_argument, str_is_number
-from config import GROUP_ID
+from helper import ChatTypeFilter, bot, dp, is_admin_or_super_admin, get_message_argument, str_is_number, get_group_id
 
 
 @dp.message(ChatTypeFilter(chat_type=['group', 'supergroup']), Command('reply_group'))
@@ -14,7 +13,8 @@ async def reply_group_private(message: Message):
     if not is_admin_or_super_admin(message.chat.id):
         await message.reply('Вы не можете отвечать на сообщение в группе через бота')
         return
-    if not GROUP_ID:
+    group_id = get_group_id()
+    if not group_id:
         await message.reply('У бота нет привязанной группы в конфиге')
         return
     try:
@@ -26,7 +26,7 @@ async def reply_group_private(message: Message):
         if not str_is_number(message_id):
             await message.reply('Первый параметр message_id должен быть задан числом')
             return
-        await bot.send_message(GROUP_ID, text, reply_to_message_id=int(message_id))
+        await bot.send_message(group_id, text, reply_to_message_id=int(message_id))
         await message.reply('Ответ на сообщение успешно отправлен в группу')
     except Exception as _:
         await message.reply(

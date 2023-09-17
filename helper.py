@@ -67,3 +67,8 @@ def is_super_admin(chat_id):
 
 def is_admin_or_super_admin(chat_id):
     return is_admin(chat_id) or is_super_admin(chat_id)
+
+
+def get_group_id():
+    v = sql_exec('SELECT value FROM settings WHERE key=?', ('GROUP_ID',)) or []
+    return v[0].get('value') if len(v) else None
