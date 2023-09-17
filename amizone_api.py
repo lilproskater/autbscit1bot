@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import requests
 from re import sub as re_sub, search as re_search
+from calendar import day_name as week_day_names  # ['Monday', ..., 'Sunday']
 from lxml import html
 
 
@@ -43,41 +44,31 @@ class AmizoneApiSession:
     @staticmethod
     def __parse_time_table__(html_text, day):
         day = day.capitalize()
-        days_of_the_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        if day != 'Week' and day not in days_of_the_week:
-            return 'Given day should be in range of Monday-Sunday (Mon-Sun)'
-        days_to_parse = days_of_the_week if day == 'Week' else [day]
+        if day != 'Week' and day not in week_day_names:
+            raise Exception('Given day should be Week or Monday-Sunday')
+        days = week_day_names if day == 'Week' else [day]
         tree = html.fromstring(html_text)
-        in_ids = ' or '.join([f'contains(@id, "{x}")' for x in days_to_parse])
+        in_ids = ' or '.join([f'contains(@id, "{x}")' for x in days])
         if not tree.xpath(f'//div[{in_ids}]'):
-            return 'Time-table not set'.title()
-        res = ''
-        one_day_parse = len(days_to_parse) == 1
-        for day in days_to_parse:
-            res += f'{day.upper()} {" time-table".title()}'.strip() + '\n\n'
+            return None
+        parsed = {}
+        for day in days:
+            parsed[day] = []
             lectures = tree.xpath(f'//div[@id="{day}"]//div[contains(@class, "timetable-box")]')
             if not lectures:
-                res += f'{"Time-table not set".title()}\n'
-            course_names = {
-                'CSIT136': '🌐 Internet of Things',
-                'IT305': '📱 Mobile App Development',
-                'CSIT322': '🖼 Image Processing',
-                'CSIT311': '🐧 UNIX OS & Shell',
-                'CSIT342': '🛠 Software Testing',
-                'PFE301': '🗣 Professional Ethics',
-            }
+                continue
+            lectures_buffer = []
             for lecture in lectures:
-                res += lecture.find_class('class-time')[0].text_content().replace(' ', '').replace('to', ' - ') + '\n'
-                course_code = lecture.find_class('course-code')[0].text_content().replace(' ', '')
-                course_name = course_names.get(course_code)
-                res += f'{course_name if course_name else "Unknown Course"} - {course_code}\n'
-                res += re_sub(r'\[[^[]*]', '', lecture.find_class('course-teacher')[0].text_content()) + '\n'
-                room_number = re_search(r'\d{3}', lecture.find_class('class-loc')[0].text_content())
-                room_number = room_number[0] if room_number else 'Unknown Room'
-                res += f'Room: {room_number}\n'
-                res += f'{"_" * 20}{"NEWLINE" * 2 if one_day_parse else "NEWLINE"}'.replace('NEWLINE', '\n')
-            res += f'{"NEWLINE" if one_day_parse else "_" * 20 + "NEWLINE" * 2}'.replace('NEWLINE', '\n')
-        return res
+                room_no = re_search(r'\d{3}', lecture.find_class('class-loc')[0].text_content())
+                lecture_buf = {
+                    'code': lecture.find_class('course-code')[0].text_content().replace(' ', ''),
+                    'time': lecture.find_class('class-time')[0].text_content().replace(' ', '').replace('to', ' - '),
+                    'teacher': re_sub(r'\[[^[]*]', '', lecture.find_class('course-teacher')[0].text_content()),
+                    'room': room_no[0] if room_no else 'Unknown Room'
+                }
+                lectures_buffer.append(lecture_buf)
+            parsed[day] = lectures_buffer
+        return parsed
 
     async def get_tt(self, day='Week'):
         if not self.aspx_auth:
