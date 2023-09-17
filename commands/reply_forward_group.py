@@ -1,11 +1,16 @@
 from aiogram.filters.command import Command
 from aiogram.types import Message
-from helper import ChatTypeFilter, bot, dp, is_admin_or_super_admin
+from helper import ChatTypeFilter, bot, dp, is_admin_or_super_admin, get_message_argument, str_is_number
 from config import GROUP_ID
 
 
-@dp.message(ChatTypeFilter(chat_type=['private']), Command('reply_forward_group'))
+@dp.message(ChatTypeFilter(chat_type=['group', 'supergroup']), Command('reply_forward_group'))
 async def reply_forward_group(message: Message):
+    await message.reply('Я не знаю такой команды. Ну или почти))')
+
+
+@dp.message(ChatTypeFilter('private'), Command('reply_forward_group'))
+async def reply_forward_group_private(message: Message):
     if not is_admin_or_super_admin(message.chat.id):
         await message.reply('Вы не можете пересылать сообщение в группу через бота')
         return
@@ -13,10 +18,11 @@ async def reply_forward_group(message: Message):
         await message.reply('У бота нет привязанной группы в конфиге')
         return
     try:
-        args = [x.strip() for x in message.text.split(' ', 2)][1:]
-        if not message.reply_to_message or len(args) < 1:
+        message_id = get_message_argument(message)
+        if not message.reply_to_message or not message_id or not str_is_number(message_id):
             await message.reply(
-                'Пожалуйста ответьте на сообщение которое хотите переслать и параметром напишите message_id из группы'
+                'Пожалуйста ответьте на сообщение, которое хотите переслать '
+                'и параметром напишите число (message_id из группы)'
             )
             return
         if message.reply_to_message.media_group_id:
@@ -26,7 +32,7 @@ async def reply_forward_group(message: Message):
             GROUP_ID,
             from_chat_id=message.chat.id,
             message_id=message.reply_to_message.message_id,
-            reply_to_message_id=int(args[0])
+            reply_to_message_id=int(message_id)
         )
         await message.reply('Ответ на сообщение успешно переслан в группу')
     except Exception as _:

@@ -4,8 +4,13 @@ from helper import ChatTypeFilter, bot, dp, is_admin_or_super_admin
 from config import GROUP_ID
 
 
-@dp.message(ChatTypeFilter(chat_type=['private']), Command('forward_group'))
+@dp.message(ChatTypeFilter(chat_type=['group', 'supergroup']), Command('forward_group'))
 async def forward_group(message: Message):
+    await message.reply('Я не знаю такой команды. Ну или почти))')
+
+
+@dp.message(ChatTypeFilter('private'), Command('forward_group'))
+async def forward_group_private(message: Message):
     if not is_admin_or_super_admin(message.chat.id):
         await message.reply('Вы не можете пересылать сообщение в группу через бота')
         return

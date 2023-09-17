@@ -4,7 +4,7 @@ from lxml import html
 from re import search as r_search
 from requests import get as requests_get
 from json import loads as json_loads
-from helper import bot, dp
+from helper import bot, dp, get_message_argument
 
 
 async def get_google_weather(search='tashkent'):
@@ -34,12 +34,12 @@ async def get_google_weather(search='tashkent'):
             [f'{pmc["wobnm"]["wobhl"][x]["tm"]}°' for x in range(0, 15, 3)])
         )
         result = f'{location} - {today}, {forecast}\n'
-        result += f'Day: {day_temp}\n'
-        result += f'Night: {night_temp}\n\n'
-        result += f'Precipitation: {precipitation}\n'
-        result += f'Humidity: {humidity}\n'
-        result += f'Wind speed: {wind_speed}\n\n'
-        result += 'Hourly weather:\n'
+        result += f'Днем: {day_temp}\n'
+        result += f'Ночью: {night_temp}\n\n'
+        result += f'Осадки: {precipitation}\n'
+        result += f'Влажность: {humidity}\n'
+        result += f'Скорость ветра: {wind_speed}\n\n'
+        result += 'Часовая погода:\n'
         for w_time, temp in hourly_w.items():
             result += f'{", ".join(w_time.split(" "))} - {temp}\n'
         return img_url, result
@@ -49,16 +49,11 @@ async def get_google_weather(search='tashkent'):
 
 @dp.message(Command('google_weather'))
 async def google_weather(message: Message):
-    args = message.text.split()
-    if len(args) > 2:
-        await message.reply('Error in given arguments')
-        return
-    city = args[1].strip() + ' ' if len(args) == 2 else ''
-    await message.reply(f'Getting {city} weather information from Google...')
-    city = city.strip()
-    img_url, caption = await get_google_weather(city if city else 'tashkent')
+    city = get_message_argument(message) or 'Tashkent'
+    await message.reply(f'Получаю информацию о погоде в "{city}" из Google...')
+    img_url, caption = await get_google_weather(city)
     if not caption:
-        await message.reply('Couldn\'t get weather info from Google')
+        await message.reply('Не удалось получить информацию о погоде из Google')
         return
     if img_url:
         await bot.send_photo(message.chat.id, img_url, caption=caption, reply_to_message_id=message.message_id)

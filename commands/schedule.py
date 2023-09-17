@@ -4,6 +4,7 @@ from helper import dp
 from datetime import date
 from amizone_api import AmizoneApiSession
 from calendar import day_name as calendar_day_name  # ['Monday', ..., 'Sunday']
+from helper import get_message_argument
 from config import AMIZONE_ID, AMIZONE_PASSWORD
 
 
@@ -22,8 +23,8 @@ def normalize_day(day):  # Returns 'Week' or string Monday-Sunday
 
 @dp.message(Command('schedule'))
 async def schedule(message: Message):
-    day = f'{message.text} '.split(' ', 1)[1].capitalize()
-    day = normalize_day(calendar_day_name[date.today().weekday()] if not day else day.strip())
+    day = get_message_argument(message).capitalize()
+    day = normalize_day(day or calendar_day_name[date.today().weekday()])
     if not day:
         await message.reply('Ошибка: Параметр должен быть задан как [Week, Tom (Tomorrow) или Mon-Sun (Monday-Sunday)]')
         return

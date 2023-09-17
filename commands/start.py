@@ -9,7 +9,7 @@ async def start(message: Message):
     me = await bot.get_me()
     await bot.send_message(
         message.chat.id,
-        f'Hats off to you, I am slave of <i>Senior sudo</i> – <b>{me.first_name}</b>! What can I do for you?',
+        f'Снимаю шляпу, я являюсь рабом <i>Сеньора sudo</i> – <b>{me.first_name}</b>! Что я могу сделать для вас?',
         parse_mode='html',
         reply_to_message_id=sticker_message.message_id
     )
