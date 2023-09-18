@@ -27,7 +27,7 @@ class ChatTypeFilter(BaseFilter):
     def __init__(self, chat_type: Union[str, list]):
         self.chat_type = chat_type
 
-    async def __call__(self, message_or_call: Message | CallbackQuery) -> bool:
+    async def __call__(self, message_or_call: Union[Message, CallbackQuery]) -> bool:
         message = message_or_call if isinstance(message_or_call, Message) else message_or_call.message
         if isinstance(self.chat_type, str):
             return message.chat.type == self.chat_type
