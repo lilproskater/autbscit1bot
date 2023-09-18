@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from commands import *
 from callback_queries import *
 from helper import dp, bot, sql_exec
