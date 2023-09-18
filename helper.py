@@ -6,6 +6,7 @@ from config import BOT_TOKEN
 from sqlite3 import connect as sqlite3_connect
 from re import sub as re_sub
 from typing import Union
+from lang import t_dictionary
 
 
 bot = Bot(token=BOT_TOKEN)
@@ -72,3 +73,21 @@ def is_admin_or_super_admin(chat_id):
 def get_group_id():
     v = sql_exec('SELECT value FROM settings WHERE key=?', ('GROUP_ID',)) or []
     return v[0].get('value') if len(v) else None
+
+
+def t(key: str, replace: dict = None, locale: str = 'ru') -> str:
+    replace = replace or {}
+    lang = t_dictionary.get(locale)
+    if not lang:
+        return key
+    c_depth = lang
+    for k in key.split('.'):
+        value = c_depth.get(k)
+        if not value:  # None or empty
+            return key
+        if isinstance(value, str):  # Match found
+            for rep_k, rep_v in replace.items():
+                value = value.replace('{' + str(rep_k) + '}', str(rep_v))
+            return value
+        c_depth = value
+    return key

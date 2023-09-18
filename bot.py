@@ -27,6 +27,10 @@ def create_db_schema():
         name VARCHAR(255),
         till_time UNSIGNED BIG INT
      );''')
+    sql_exec('''CREATE TABLE IF NOT EXISTS subjects (
+        code VARCHAR(255) PRIMARY KEY,
+        name VARCHAR(255)
+    );''')
 
 
 def ask_and_remove_db():

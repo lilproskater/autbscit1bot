@@ -1,9 +1,8 @@
 from aiogram.filters.command import Command
 from aiogram.types import Message
-from helper import dp
 from datetime import date
 from amizone_api import AmizoneApiSession, week_day_names
-from helper import get_message_argument
+from helper import dp, t, sql_exec, get_message_argument
 from config import AMIZONE_ID, AMIZONE_PASSWORD
 
 
@@ -23,15 +22,8 @@ def normalize_day(day):  # Returns 'Week' or 'Monday' - 'Sunday'
 def get_course_name_by_code(code):
     if not code:
         return 'Unknown Course'
-    # TODO: Remake below into DB sql_exec
-    return {
-        'CSIT136': '🌐 Internet of Things',
-        'IT305': '📱 Mobile App Development',
-        'CSIT322': '🖼 Image Processing',
-        'CSIT311': '🐧 UNIX OS & Shell',
-        'CSIT342': '🛠 Software Testing',
-        'PFE301': '🗣 Professional Ethics',
-    }.get(code) or 'Unknown Course'
+    rows = sql_exec('SELECT name FROM subjects WHERE code=?', (code,))
+    return rows[0].get('name') if len(rows or []) else 'Unknown Course'
 
 
 def tt2text(time_table):
@@ -57,16 +49,16 @@ async def schedule(message: Message):
     day = get_message_argument(message).capitalize()
     day = normalize_day(day or week_day_names[date.today().weekday()])
     if not day:
-        await message.reply('Ошибка: Параметр должен быть задан как [Week, Tom (Tomorrow) или Mon-Sun (Monday-Sunday)]')
+        await message.reply(t('commands.schedule.arg_error'))
         return
     try:
-        await message.reply('Получаю расписание из Amizone...')
+        await message.reply(t('commands.schedule.getting_schedule'))
         session = AmizoneApiSession(AMIZONE_ID, AMIZONE_PASSWORD)
         await session.login()
         time_table = await session.get_tt(day)
         if not time_table:
-            await message.reply('Расписание не вышло')
+            await message.reply(t('commands.schedule.schedule_not_set'))
             return
         await message.reply(tt2text(time_table))
     except Exception as _:
-        await message.reply(f'Не удалось получить расписание из Amizone')
+        await message.reply(t('commands.schedule.failed'))

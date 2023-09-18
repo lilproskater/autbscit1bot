@@ -1,32 +1,30 @@
 from aiogram.filters.command import Command
 from aiogram.types import Message
-from helper import ChatTypeFilter, bot, dp, is_admin_or_super_admin, get_message_argument, str_is_number, get_group_id
+from helper import ChatTypeFilter, dp, bot, t, is_admin_or_super_admin, get_group_id
+from helper import get_message_argument, str_is_number
 
 
 @dp.message(ChatTypeFilter(chat_type=['group', 'supergroup']), Command('reply_forward_group'))
 async def reply_forward_group(message: Message):
-    await message.reply('Я не знаю такой команды. Ну или почти))')
+    await message.reply(t('common.command_only_for_private'))
 
 
 @dp.message(ChatTypeFilter('private'), Command('reply_forward_group'))
 async def reply_forward_group_private(message: Message):
     if not is_admin_or_super_admin(message.chat.id):
-        await message.reply('Вы не можете пересылать сообщение в группу через бота')
+        await message.reply(t('common.you_cant_send_message_to_group'))
         return
     group_id = get_group_id()
     if not group_id:
-        await message.reply('У бота нет привязанной группы в конфиге')
+        await message.reply(t('common.no_group'))
         return
     try:
         message_id = get_message_argument(message)
         if not message.reply_to_message or not message_id or not str_is_number(message_id):
-            await message.reply(
-                'Пожалуйста ответьте на сообщение, которое хотите переслать '
-                'и параметром напишите число (message_id из группы)'
-            )
+            await message.reply(t('commands.reply_forward_group.reply_to_message'))
             return
         if message.reply_to_message.media_group_id:
-            await message.reply('Нельзя переслать медиа-группу. Пожалуйста ответьте на сообщение с одним вложением')
+            await message.reply(t('commands.reply_forward_group.media_group_error'))
             return
         await bot.copy_message(
             group_id,
@@ -34,9 +32,6 @@ async def reply_forward_group_private(message: Message):
             message_id=message.reply_to_message.message_id,
             reply_to_message_id=int(message_id)
         )
-        await message.reply('Ответ на сообщение успешно переслан в группу')
+        await message.reply(t('commands.reply_forward_group.success'))
     except Exception as _:
-        await message.reply(
-            'Не удалось ответить на сообщение в группе. '
-            'Проверьте права, существование сообщения и бота в группе'
-        )
+        await message.reply(t('commands.reply_forward_group.failed'))

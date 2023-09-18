@@ -57,17 +57,17 @@ class AmizoneApiSession:
             lectures = tree.xpath(f'//div[@id="{day}"]//div[contains(@class, "timetable-box")]')
             if not lectures:
                 continue
-            lectures_buffer = []
+            lectures_data = []
             for lecture in lectures:
                 room_no = re_search(r'\d{3}', lecture.find_class('class-loc')[0].text_content())
-                lecture_buf = {
+                lecture_data = {
                     'code': lecture.find_class('course-code')[0].text_content().replace(' ', ''),
                     'time': lecture.find_class('class-time')[0].text_content().replace(' ', '').replace('to', ' - '),
                     'teacher': re_sub(r'\[[^[]*]', '', lecture.find_class('course-teacher')[0].text_content()),
                     'room': room_no[0] if room_no else 'Unknown Room'
                 }
-                lectures_buffer.append(lecture_buf)
-            parsed[day] = lectures_buffer
+                lectures_data.append(lecture_data)
+            parsed[day] = lectures_data
         return parsed
 
     async def get_tt(self, day='Week'):

@@ -1,28 +1,28 @@
 from aiogram.filters.command import Command
 from aiogram.types import Message
-from helper import ChatTypeFilter, bot, dp, is_admin_or_super_admin, get_message_argument, get_group_id
+from helper import ChatTypeFilter, dp, bot, t, is_admin_or_super_admin, get_group_id, get_message_argument
 
 
 @dp.message(ChatTypeFilter(chat_type=['group', 'supergroup']), Command('send_group'))
 async def send_group(message: Message):
-    await message.reply('Я не знаю такой команды. Ну или почти))')
+    await message.reply(t('common.command_only_for_private'))
 
 
 @dp.message(ChatTypeFilter('private'), Command('send_group'))
 async def send_group_private(message: Message):
     if not is_admin_or_super_admin(message.chat.id):
-        await message.reply('Вы не можете отправлять сообщение в группу через бота')
+        await message.reply(t('common.you_cant_send_message_to_group'))
         return
     group_id = get_group_id()
     if not group_id:
-        await message.reply('У бота нет привязанной группы в конфиге')
+        await message.reply(t('common.no_group'))
         return
     try:
         text = get_message_argument(message)
         if not text:
-            await message.reply('Пожалуйста введите аргументом текст, который вы хотите отправить в группу')
+            await message.reply(t('commands.send_group.arg_error'))
             return
         await bot.send_message(group_id, text)
-        await message.reply('Сообщение успешно отправлено в группу')
+        await message.reply(t('commands.send_group.success'))
     except Exception as _:
-        await message.reply('Не удалось отправить сообщение в группу. Проверьте права и существование бота в группе')
+        await message.reply(t('commands.send_group.failed'))

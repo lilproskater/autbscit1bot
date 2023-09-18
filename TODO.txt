@@ -1,2 +1,0 @@
-* Add DB table for subjects (+ admin command /update_subjects that will work just like BotFather's /setcommands)
-* Lang files to make code cleaner?
