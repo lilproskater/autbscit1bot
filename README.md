@@ -2,6 +2,7 @@
 
 ## Setup:
 * Copy config.example.py to config.py  
+* Configure config.py  
 * Create the virtual environment:  
 ```
 python3 -m venv venv

@@ -7,8 +7,9 @@ class SettingsSeeder:
     def run():
         data = {
             'SUPER_ADMIN_ID': SUPER_ADMIN_ID,
-            'GROUP_ID': GROUP_ID,
         }
+        if GROUP_ID:
+            data['GROUP_ID'] = GROUP_ID
         q = None
         for key, value in data.items():
             try:
